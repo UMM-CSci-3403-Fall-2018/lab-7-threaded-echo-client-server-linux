@@ -8,12 +8,12 @@ import java.net.Socket;
 public class EchoClient {
 	public static final int PORT_NUMBER = 6013;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		EchoClient client = new EchoClient();
 		client.start();
 	}
 
-	private void start() throws IOException {
+	private void start() throws IOException, InterruptedException {
 		Socket socket = new Socket("localhost", PORT_NUMBER);
 		InputStream socketInputStream = socket.getInputStream();
 		// create the threads
@@ -22,7 +22,8 @@ public class EchoClient {
 
         keyboard.start();
         screen.start();
-
+        keyboard.join();
+        screen.join();
 	}
 
 	/**
