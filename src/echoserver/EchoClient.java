@@ -17,12 +17,56 @@ public class EchoClient {
 		Socket socket = new Socket("localhost", PORT_NUMBER);
 		InputStream socketInputStream = socket.getInputStream();
 		OutputStream socketOutputStream = socket.getOutputStream();
-		int readByte;
-		while ((readByte = System.in.read()) != -1) {
-			socketOutputStream.write(readByte);
-			int socketByte = socketInputStream.read();
-			System.out.write(socketByte);
-		}
-		System.out.flush();
+		// create the threads
+		Thread keyboard = new Thread(new KeyboardReader(socketOutputStream));
+        Thread screen = new Thread(new ScreenWriter(socketInputStream));
+
+        keyboard.start();
+        screen.start();
 	}
+
+	/**
+     * A class for reading from stdin and sending the input to the server
+     */
+	class KeyboardReader implements Runnable {
+	    private OutputStream socketOutputStream;
+
+	    public KeyboardReader(OutputStream outputStream) {
+	        socketOutputStream = outputStream;
+        }
+
+	    public void run() {
+	        try {
+                int readByte;
+                // read a byte from standard input
+                while ((readByte = System.in.read()) != -1) {
+                    // write that byte to the socketOutputStream
+                    socketOutputStream.write(readByte);
+                }
+            } catch (IOException e) {System.out.print(e);}
+
+        }
+    }
+
+    /**
+     * A class for reading from the server and writing the input to stdout
+     */
+    class ScreenWriter implements Runnable {
+        private InputStream socketInputStream;
+
+        public ScreenWriter(InputStream inputStream) {
+            socketInputStream = inputStream;
+        }
+
+        public void run() {
+            try {
+                int readByte;
+                //
+                while ((readByte = socketInputStream.read()) != -1) {
+                    System.out.write(readByte);
+                }
+                System.out.flush();
+            } catch (IOException e) {System.out.print(e);}
+        }
+    }
 }
