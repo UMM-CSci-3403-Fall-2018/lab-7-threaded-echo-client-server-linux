@@ -16,23 +16,25 @@ public class EchoClient {
 	private void start() throws IOException {
 		Socket socket = new Socket("localhost", PORT_NUMBER);
 		InputStream socketInputStream = socket.getInputStream();
-		OutputStream socketOutputStream = socket.getOutputStream();
 		// create the threads
-		Thread keyboard = new Thread(new KeyboardReader(socketOutputStream));
+		Thread keyboard = new Thread(new KeyboardReader(socket));
         Thread screen = new Thread(new ScreenWriter(socketInputStream));
 
         keyboard.start();
         screen.start();
+
 	}
 
 	/**
      * A class for reading from stdin and sending the input to the server
      */
 	class KeyboardReader implements Runnable {
+	    private Socket socket;
 	    private OutputStream socketOutputStream;
 
-	    public KeyboardReader(OutputStream outputStream) {
-	        socketOutputStream = outputStream;
+	    public KeyboardReader(Socket socket) throws IOException{
+	        this.socket = socket;
+	        socketOutputStream = socket.getOutputStream();
         }
 
 	    public void run() {
@@ -43,6 +45,8 @@ public class EchoClient {
                     // write that byte to the socketOutputStream
                     socketOutputStream.write(readByte);
                 }
+                // shutdown the output so that the server knows there's nothing else to receive
+                socket.shutdownOutput();
             } catch (IOException e) {System.out.print(e);}
 
         }
@@ -66,6 +70,9 @@ public class EchoClient {
                     System.out.write(readByte);
                 }
                 System.out.flush();
+
+                // close the inputStream and the socket
+                socketInputStream.close();
             } catch (IOException e) {System.out.print(e);}
         }
     }
