@@ -17,16 +17,15 @@ public class EchoServer {
 	private void start() throws IOException, InterruptedException {
 		ServerSocket serverSocket = new ServerSocket(PORT_NUMBER);
 		while (true) {
-			Thread t = new Thread(new Server(serverSocket));
+		    Socket socket = serverSocket.accept();
+			Thread t = new Thread(new Server(socket));
 			t.start();
 		}
 	}
 	class Server implements Runnable {
 		private Socket socket;
-		public Server(ServerSocket serverSocket) {
-			try {
-				this.socket = serverSocket.accept();
-			} catch (IOException e){System.out.println(e);}
+		public Server(Socket socket) {
+			this.socket = socket;
 		}
 
 		public void run() {
